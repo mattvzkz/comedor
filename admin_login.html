@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrativo - Cuatro Elementos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --organic-bg: #FBFBFB; --leaf-green: #8CC63F; --earth-text: #1A1A1A; }
+        body { 
+            background-color: var(--organic-bg); 
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzlDOUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIWMjB6TTAgMjBoMjB2MjBIMFYyMHoyMCAwaDIwdjIwSDIwVjB6Ii8+PC9nPjwvZz48L3N2Zz4=');
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
+        }
+        .login-card { 
+            background: white; padding: 50px 40px; border-radius: 30px; width: 340px; 
+            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02);
+        }
+        .login-card img { max-width: 160px; margin-bottom: 25px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); }
+        h2 { font-family: 'Playfair Display', serif; color: var(--earth-text); font-size: 1.4rem; margin-bottom: 30px; }
+        input { 
+            width: 100%; padding: 16px; margin-bottom: 15px; background: #F8F9FA; 
+            border: 1px solid #EEE; color: var(--earth-text); border-radius: 14px; 
+            box-sizing: border-box; outline: none; transition: 0.3s; font-family: inherit;
+        }
+        input:focus { border-color: var(--leaf-green); background: white; box-shadow: 0 0 0 4px rgba(140, 198, 63, 0.1); }
+        button { 
+            width: 100%; padding: 16px; background: var(--earth-text); border: none; 
+            border-radius: 14px; font-weight: 700; cursor: pointer; color: white; 
+            transition: 0.3s; margin-top: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        button:hover { background: #333; transform: translateY(-2px); }
+        #error-msg { color: #E74C3C; font-size: 0.8rem; margin-top: 20px; display: none; background: #FFF5F5; padding: 12px; border-radius: 10px; border: 1px solid #FFE3E3; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <img src="img/logo_cuatro_elementos.png" alt="Logo">
+        <h2>Acceso Administrativo</h2>
+        <input type="text" id="userInput" placeholder="Nombre de usuario" autocomplete="username">
+        <input type="password" id="passInput" placeholder="Contraseña" autocomplete="current-password">
+        <button id="btnLog" onclick="intentarLogin()">Entrar al Panel</button>
+        <div id="error-msg"></div>
+    </div>
+
+    <script>
+        async function intentarLogin() {
+            const user = document.getElementById('userInput').value;
+            const pass = document.getElementById('passInput').value;
+            const errorDiv = document.getElementById('error-msg');
+            const btn = document.getElementById('btnLog');
+
+            if(!user || !pass) return;
+
+            btn.disabled = true;
+            btn.innerText = "VERIFICANDO...";
+            errorDiv.style.display = "none";
+
+            try {
+                const response = await fetch('api/admin_auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario: user, password: pass })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem('admin_session', JSON.stringify(data.admin));
+                    window.location.href = 'panel_control.html';
+                } else {
+                    errorDiv.innerText = data.message;
+                    errorDiv.style.display = "block";
+                    btn.disabled = false;
+                    btn.innerText = "ENTRAR AL PANEL";
+                }
+            } catch (e) {
+                errorDiv.innerText = "Error de conexión con el servidor.";
+                errorDiv.style.display = "block";
+                btn.disabled = false;
+                btn.innerText = "ENTRAR AL PANEL";
+            }
+        }
+        document.addEventListener('keypress', (e) => { if(e.key === 'Enter') intentarLogin(); });
+    </script>
+</body>
+</html>

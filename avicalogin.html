@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Privado - AvicaAdmon</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --organic-bg: #FBFBFB; 
+            --earth-text: #1A1A1A; 
+            --leaf-green: #8CC63F; 
+            --danger: #E74C3C;
+        }
+
+        body { 
+            background: var(--organic-bg); 
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzlDOUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIWMjB6TTAgMjBoMjB2MjBIMFYyMHoyMCAwaDIwdjIwSDIwVjB6Ii8+PC9nPjwvZz48L3N2Zz4=');
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+
+        .login-card { 
+            background: white; 
+            padding: 50px 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05); 
+            width: 100%; 
+            max-width: 360px; 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.02);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-card img { 
+            height: 70px; 
+            margin-bottom: 25px; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); 
+        }
+
+        h2 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 1.4rem; 
+            margin-bottom: 30px; 
+            color: var(--earth-text); 
+        }
+        
+        .input-group { text-align: left; margin-bottom: 15px; }
+        
+        input { 
+            width: 100%; 
+            padding: 16px; 
+            background: #F8F9FA; 
+            border: 1px solid #EEE; 
+            border-radius: 15px; 
+            box-sizing: border-box; 
+            font-size: 1rem; 
+            outline: none; 
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus { 
+            border-color: var(--leaf-green); 
+            background: white; 
+            box-shadow: 0 0 0 4px rgba(140, 198, 63, 0.1);
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 15px; 
+            background: var(--earth-text); 
+            color: white; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        button:hover { 
+            background: var(--leaf-green); 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        button:disabled { background: #CCC; cursor: not-allowed; transform: none; }
+        
+        #error { 
+            color: var(--danger); 
+            font-size: 0.8rem; 
+            margin-top: 20px; 
+            display: none; 
+            background: #FFF5F5; 
+            padding: 12px; 
+            border-radius: 12px; 
+            border: 1px solid #FFE3E3;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <img src="img/logo_cuatro_elementos.png" alt="Cuatro Elementos Logo">
+        <h2>AvicaAdmon</h2>
+        
+        <div class="input-group">
+            <input type="text" id="user" placeholder="Usuario de acceso" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <input type="password" id="pass" placeholder="Contraseña" autocomplete="current-password">
+        </div>
+        
+        <button id="btnLogin" onclick="login()">Ingresar al Panel</button>
+        
+        <div id="error"></div>
+    </div>
+
+    <script>
+        async function login() {
+            const userField = document.getElementById('user');
+            const passField = document.getElementById('pass');
+            const btn = document.getElementById('btnLogin');
+            const errorDiv = document.getElementById('error');
+
+            const user = userField.value.trim();
+            const pass = passField.value.trim();
+
+            if(!user || !pass) return;
+
+            // UI Feedback
+            btn.innerText = "VERIFICANDO...";
+            btn.disabled = true;
+            errorDiv.style.display = 'none';
+
+            try {
+                // Petición al backend blindado
+                const r = await fetch('api/avica_auth.php', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ user: user, pass: pass })
+                });
+
+                if (!r.ok) throw new Error("Servidor no responde");
+
+                const d = await r.json();
+
+                if(d.success) {
+                    // Guardar sesión en local y redirigir
+                    localStorage.setItem('avica_session', 'active');
+                    localStorage.setItem('avica_user', d.user);
+                    window.location.href = 'avicaadmon.html';
+                } else {
+                    // Error de credenciales
+                    errorDiv.innerText = d.message;
+                    errorDiv.style.display = 'block';
+                    btn.innerText = "INGRESAR AL PANEL";
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                console.error("Auth Error:", e);
+                errorDiv.innerText = "Error: El canal de comunicación se cerró o falló.";
+                errorDiv.style.display = 'block';
+                btn.innerText = "INGRESAR AL PANEL";
+                btn.disabled = false;
+            }
+        }
+        
+        // Permitir ingreso con la tecla Enter
+        document.addEventListener('keypress', (e) => { 
+            if(e.key === 'Enter') login(); 
+        });
+    </script>
+</body>
+</html>

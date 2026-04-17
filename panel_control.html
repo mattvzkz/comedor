@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Cuatro Elementos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --organic-bg: #FBFBFB; 
+            --leaf-green: #8CC63F; 
+            --earth-text: #1A1A1A; 
+            --soft-gray: #F1F1F1;
+            --water-cyan: #55C5D1;
+        }
+        
+        body { 
+            background: var(--organic-bg); 
+            color: var(--earth-text); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; padding: 20px; 
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzlDOUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIWMjB6TTAgMjBoMjB2MjBIMFYyMHoyMCAwaDIwdjIwSDIwVjB6Ii8+PC9nPjwvZz48L3N2Zz4=');
+        }
+
+        .container { max-width: 900px; margin: auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header img { height: 60px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .header h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin: 0; }
+
+        .nav-tabs { display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--soft-gray); }
+        .tab-btn { background: none; border: none; color: #888; font-weight: 700; cursor: pointer; padding: 12px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .tab-btn.active { color: var(--leaf-green); border-bottom: 3px solid var(--leaf-green); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .card { background: white; padding: 30px; border-radius: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
+        .card h3 { font-size: 0.8rem; color: #888; text-transform: uppercase; margin: 0 0 10px 0; }
+        .card span { font-size: 2.5rem; color: var(--earth-text); font-weight: 800; display: block; }
+
+        .section { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 15px; color: #AAA; font-size: 0.7rem; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #F8F8F8; }
+        
+        .badge { padding: 5px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; color: white; }
+
+        .btn-exit { color: #E74C3C; background: none; border: 1px solid #FFEDED; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        
+        .ticket { background: white; color: black; padding: 40px; max-width: 320px; margin: auto; font-family: monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 5px solid var(--leaf-green); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <img src="img/logo_cuatro_elementos.png" alt="Cuatro Elementos Logo">
+            <h2>Panel Administrativo</h2>
+        </div>
+        <button class="btn-exit" onclick="localStorage.removeItem('admin_session'); location.href='admin_login.html'">SALIR</button>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('resumen', this)">Estadísticas</button>
+        <button class="tab-btn" onclick="switchTab('alertas', this)">Bitácora</button>
+        <button class="tab-btn" onclick="switchTab('corte', this)">Corte de Caja</button>
+    </div>
+
+    <div id="resumen" class="tab-content active">
+        <div class="grid">
+            <div class="card"><h3>Ingresos Totales</h3><span id="vM">$0.00</span></div>
+            <div class="card"><h3>Comidas Servidas</h3><span id="vS">0</span></div>
+        </div>
+        <div class="section"><canvas id="chart" height="140"></canvas></div>
+    </div>
+
+    <div id="alertas" class="tab-content">
+        <div class="section">
+            <table>
+                <thead><tr><th>Usuario</th><th>Operación</th><th>Hora</th></tr></thead>
+                <tbody id="logs"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="corte" class="tab-content">
+        <div class="ticket">
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="margin:0">CUATRO ELEMENTOS</h3>
+                <small>REPORTE DE COMEDOR</small><br>
+                <small id="fechaTicket"></small>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin:10px 0;"><span>COMIDAS:</span><span id="cServ">0</span></div>
+            <div style="display:flex; justify-content:space-between; margin:10px 0;"><span>RECARGAS:</span><span id="cMoney">$0.00</span></div>
+            <div style="border-top:1px dashed #000; margin-top:15px; padding-top:15px; font-weight:bold; display:flex; justify-content:space-between; font-size:1.1rem;">
+                <span>TOTAL:</span><span id="cTotal">$0.00</span>
+            </div>
+            <button onclick="window.print()" style="width:100%; margin-top:25px; padding:12px; background:#1A1A1A; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">IMPRIMIR COMPROBANTE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    if(!localStorage.getItem('admin_session')) { window.location.href = 'admin_login.html'; }
+    let ch;
+
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    async function loadData() {
+        try {
+            // Sincronización blindada con bypass de caché para Hostinger
+            const r = await fetch('api/admin_stats.php?t=' + Date.now());
+            const d = await r.json();
+            
+            if(d.success) {
+                const s = d.stats;
+                document.getElementById('vM').innerText = "$" + s.recaudacion;
+                document.getElementById('vS').innerText = s.servicios;
+                
+                if(document.getElementById('cServ')) document.getElementById('cServ').innerText = s.servicios;
+                if(document.getElementById('cMoney')) document.getElementById('cMoney').innerText = "$" + s.recaudacion;
+                if(document.getElementById('cTotal')) document.getElementById('cTotal').innerText = "$" + s.recaudacion;
+                document.getElementById('fechaTicket').innerText = new Date().toLocaleString();
+                
+                document.getElementById('logs').innerHTML = s.historial.map(l => {
+                    const color = l.tipo === 'recarga' ? '#8CC63F' : '#55C5D1';
+                    return `<tr><td><b>${l.nombre}</b></td><td><span class="badge" style="background:${color}">${l.tipo}</span></td><td>${l.fecha}</td></tr>`;
+                }).join('');
+
+                const ctx = document.getElementById('chart').getContext('2d');
+                if(ch) ch.destroy();
+                ch = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: s.grafica.labels,
+                        datasets: [{ label: 'Consumos', data: s.grafica.data, backgroundColor: '#8CC63F', borderRadius: 8 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+        } catch(e) { console.error("Error API:", e); }
+    }
+    window.onload = loadData;
+</script>
+</body>
+</html>

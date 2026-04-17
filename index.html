@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4 Elementos To Go! | Restaurante Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            /* Actualizado a la paleta de 4 Elementos To Go! */
+            --organic-bg: #FFFFFF; /* Cambiado a blanco puro para resaltar el logo */
+            --earth-text: #1A1A1A; 
+            --leaf-green: #8CC63F; /* Color de la nueva identidad */
+            --water-cyan: #55C5D1; 
+            --fire-red: #E74C3C;
+            --soft-gray: #FBFBFB;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background-color: var(--organic-bg); 
+            color: var(--earth-text); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            line-height: 1.6;
+        }
+
+        /* BARRA DE NAVEGACIÓN - Minimalista y transparente */
+        nav { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 8%; background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(15px); position: fixed; width: 100%; top: 0; z-index: 1000; 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+
+        .logo-nav { height: 50px; } /* Ajuste de altura para el nuevo logo */
+
+        .nav-links a { 
+            color: var(--earth-text); text-decoration: none; margin-left: 25px; 
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 1px; transition: 0.3s; 
+        }
+        .nav-links a:hover { color: var(--leaf-green); }
+
+        /* SECCIÓN HERO - Foco Principal */
+        .hero { 
+            height: 100vh; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; text-align: center; 
+            padding: 0 10%; background: #FFFFFF; /* Fondo blanco puro */
+        }
+
+        /* Logo Central Grande */
+        .hero img { 
+            max-width: 320px; width: 85%; margin-bottom: 30px; 
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.05)); 
+            animation: fadeIn 1.2s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hero h1 { 
+            font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4.5rem); 
+            font-weight: 900; line-height: 1.1; margin-bottom: 20px; 
+        }
+        .hero h1 span { color: var(--leaf-green); } /* El "Conecta" en verde */
+
+        .hero p { 
+            font-size: 1.1rem; color: #666; max-width: 600px; 
+            margin-bottom: 40px; font-weight: 300;
+        }
+
+        /* BOTONES - Estilo moderno y "clickeable" */
+        .btn { 
+            padding: 18px 45px; border-radius: 16px; text-decoration: none; 
+            font-weight: 700; font-size: 0.85rem; transition: 0.3s; display: inline-block;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .btn-primary { 
+            background: var(--earth-text); color: white; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover { transform: translateY(-5px); background: var(--leaf-green); }
+
+        /* SECCIÓN CARACTERÍSTICAS - Respetando los elementos originales */
+        .features { 
+            padding: 100px 10%; display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 40px; background: var(--soft-gray);
+        }
+
+        .f-card { 
+            background: white; padding: 40px; border-radius: 30px; 
+            border: 1px solid #F1F1F1; transition: 0.3s;
+        }
+        .f-card:hover { transform: translateY(-10px); border-color: var(--leaf-green); }
+        
+        .f-card h3 { 
+            font-family: 'Playfair Display', serif; color: var(--earth-text); 
+            margin-bottom: 15px; font-size: 1.4rem; 
+        }
+        .f-card p { color: #888; font-size: 0.9rem; font-weight: 300; }
+
+        /* FOOTER - Limpio y profesional */
+        footer { 
+            padding: 60px 10%; text-align: center; border-top: 1px solid #EEE; 
+            color: #AAA; font-size: 0.75rem; letter-spacing: 1px; background: white;
+        }
+        footer b { color: var(--leaf-green); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero img { max-width: 250px; }
+            .hero h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <img src="img/logo_principal.png" class="logo-nav" alt="4 Elementos To Go!">
+        <div class="nav-links">
+            <a href="registro.html">Registro</a>
+            <a href="login.html">Mi Saldo</a>
+            <a href="avicaadmon.html">Admin</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <img src="img/logo_principal.png" alt="Logo 4 Elementos To Go!">
+        
+        <h1>Sabor que <span>Conecta</span></h1>
+        <p>Experimenta la tecnología aplicada al arte culinario. Control inteligente de accesos y saldos para tu experiencia To Go!.</p>
+        
+        <div class="cta-group">
+            <a href="registro.html" class="btn btn-primary">Registrarme Ahora</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="f-card">
+            <h3 style="color: var(--water-cyan);">Agua</h3>
+            <p>Fluidez total en tus pedidos To Go!. Recarga tu saldo digital y olvídate de las filas y el efectivo.</p>
+        </div>
+        <div class="f-card">
+            <h3 style="color: var(--fire-red);">Fuego</h3>
+            <p>Pasión por la eficiencia. Acceso y pedidos instantáneos mediante códigos QR de alta velocidad.</p>
+        </div>
+        <div class="f-card">
+            <h3 style="color: var(--leaf-green);">Tierra</h3>
+            <p>Sustentabilidad y control. Gestión digital completa que elimina el uso de tickets de papel.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>IDENTIDAD DISEÑADA POR <b>SOLUCIONES RG</b> &copy; 2026<br>
+        TECNOLOGÍA PARA <b>4 ELEMENTOS TO GO! BY 4 ELEMENTOS</b></p>
+    </footer>
+
+</body>
+</html>

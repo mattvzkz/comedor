@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Operativo - 4 Elementos To Go!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --leaf: #8CC63F; --text: #1A1A1A; --soft: #FBFBFB; --white: #FFFFFF; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: #FBFBFB; color: var(--text); }
+        
+        /* HEADER */
+        .header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #EEE; position: sticky; top: 0; z-index: 1000; }
+        
+        /* TABS */
+        .nav-tabs { display: flex; background: white; border-bottom: 1px solid #EEE; overflow-x: auto; scrollbar-width: none; }
+        .tab-btn { border: none; background: none; padding: 15px 20px; font-weight: 700; color: #AAA; cursor: pointer; text-transform: uppercase; font-size: 0.65rem; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab-btn.active { color: var(--leaf); border-bottom-color: var(--leaf); }
+
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .panel { display: none; animation: fadeIn 0.3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* KDS CARDS */
+        .kds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .kds-card { background: var(--text); color: white; padding: 20px; border-radius: 20px; text-align: center; }
+        .kds-card big { display: block; font-size: 2.2rem; color: var(--leaf); font-weight: 800; }
+        
+        /* LISTAS */
+        .order-row, .stock-row { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border-left: 5px solid var(--leaf); }
+        .btn-action { background: var(--leaf); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        
+        input, textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #EEE; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; background: var(--soft); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="img/logo_principal.png" style="height: 35px;">
+        <div id="user-tag" style="font-size:0.6rem; font-weight:800; color:#AAA; text-align:right;"></div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="sw('p-qr', this)">Entregas (QR)</button>
+        <button class="tab-btn" onclick="sw('p-kds', this)">Cocina (KDS)</button>
+        <button class="tab-btn" onclick="sw('p-stock', this)">Inventario</button>
+        <button class="tab-btn" onclick="sw('p-avisos', this)">Avisos</button>
+    </div>
+
+    <div class="container">
+        
+        <div id="p-qr" class="panel active">
+            <div style="background:white; padding:40px; border-radius:30px; text-align:center; border: 1px solid #EEE; cursor:pointer;" onclick="startScan()">
+                <span style="font-size:3rem;">📸</span>
+                <h3>Escanear Código Cliente</h3>
+                <p style="color:#AAA;">Toca para activar la cámara y entregar pedido</p>
+            </div>
+            <div id="reader" style="width:100%; margin-top:20px; border-radius:20px; overflow:hidden; display:none;"></div>
+        </div>
+
+        <div id="p-kds" class="panel">
+            <div class="kds-grid" id="kds-resumen"></div>
+            <div id="kds-pedidos"></div>
+        </div>
+
+        <div id="p-stock" class="panel">
+            <div id="stock-list" style="background:white; padding:20px; border-radius:25px; border:1px solid #EEE;">
+                <p style="text-align:center; color:#AAA;">Cargando inventario...</p>
+            </div>
+            <button class="btn-action" style="width:100%; margin-top:20px; background:var(--text);" onclick="saveStock()">ACTUALIZAR DISPONIBILIDAD</button>
+        </div>
+
+        <div id="p-avisos" class="panel">
+            <div style="background:white; padding:30px; border-radius:25px; border:1px solid #EEE;">
+                <input type="text" id="msg-t" placeholder="Título del Aviso">
+                <textarea id="msg-m" rows="4" placeholder="Mensaje para los usuarios..."></textarea>
+                <button class="btn-action" style="width:100%;" onclick="sendMsg()">PUBLICAR AHORA</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    const auth = JSON.parse(localStorage.getItem('admin_session'));
+    if(!auth) window.location.href = 'login_cocina.html';
+    document.getElementById('user-tag').innerText = `SESIÓN: ${auth.nombre.toUpperCase()}`;
+
+    function sw(id, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active'); btn.classList.add('active');
+        
+        if(id === 'p-kds') updateKDS();
+        if(id === 'p-stock') loadStock();
+        if(id !== 'p-qr' && typeof qr !== 'undefined') { try { qr.stop(); document.getElementById('reader').style.display='none'; } catch(e){} }
+    }
+
+    // --- MÓDULO QR ---
+    const qr = new Html5Qrcode("reader");
+    function startScan() {
+        document.getElementById('reader').style.display = 'block';
+        qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
+            qr.pause(true);
+            const res = await fetch('api/cobrar_qr.php', { method: 'POST', body: JSON.stringify({ qr_data: txt }) });
+            const d = await res.json();
+            alert(d.success ? "✅ Pedido Entregado: " + d.usuario : "❌ Error: " + d.error);
+            qr.resume();
+        }).catch(err => alert("Error de cámara: " + err));
+    }
+
+    // --- MÓDULO KDS ---
+    async function updateKDS() {
+        try {
+            const r1 = await fetch('api/gestion_menu.php?action=resumen_cocina');
+            const d1 = await r1.json();
+            if(d1.success && d1.resumen) {
+                document.getElementById('kds-resumen').innerHTML = d1.resumen.map(i => `<div class="kds-card"><small>${i.nombre}</small><big>${i.total}</big></div>`).join('');
+            }
+            const r2 = await fetch('api/gestion_menu.php?action=ver_pedidos');
+            const d2 = await r2.json();
+            if(d2.success && d2.pedidos) {
+                document.getElementById('kds-pedidos').innerHTML = d2.pedidos.map(p => `
+                    <div class="order-row">
+                        <div><b>${p.usuario}</b><br><small>${p.fuerte} + ${p.guarnicion}</small></div>
+                        <button class="btn-action" onclick="done(${p.id})">LISTO</button>
+                    </div>`).join('');
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function done(id) {
+        await fetch('api/gestion_menu.php', { method: 'POST', body: JSON.stringify({ action: 'marcar_entregado', pedido_id: id }) });
+        updateKDS();
+    }
+
+    // --- MÓDULO STOCK ---
+    async function loadStock() {
+        const r = await fetch('api/gestion_menu.php');
+        const d = await r.json();
+        if(d.success && d.menu) {
+            const list = document.getElementById('stock-list'); list.innerHTML = '';
+            ['fuerte','guarnicion','bebida'].forEach(cat => {
+                list.innerHTML += `<h4 style="color:var(--leaf); margin-top:15px; text-transform:uppercase; font-size:0.7rem;">${cat}</h4>`;
+                d.menu[cat].forEach(i => {
+                    list.innerHTML += `<div class="stock-row">
+                        <span style="font-size:0.9rem;">${i.nombre}</span>
+                        <input type="number" id="stk-${i.id}" value="${i.stock}" style="width:70px; margin:0; padding:10px; text-align:center;">
+                    </div>`;
+                });
+            });
+        }
+    }
+
+    async function saveStock() {
+        const inv = Array.from(document.querySelectorAll('input[id^="stk-"]')).map(i => ({ id: i.id.replace('stk-', ''), cantidad: i.value }));
+        await fetch('api/gestion_menu.php', { method: 'POST', body: JSON.stringify({ action: 'set_stock', inventario: inv }) });
+        alert("✅ Inventario actualizado correctamente");
+    }
+
+    // --- MÓDULO AVISOS ---
+    async function sendMsg() {
+        const res = await fetch('api/gestion_menu.php', { method: 'POST', body: JSON.stringify({ action: 'enviar_notificacion', titulo: document.getElementById('msg-t').value, mensaje: document.getElementById('msg-m').value }) });
+        const d = await res.json();
+        if(d.success) { alert("✅ Aviso enviado"); document.getElementById('msg-t').value=""; document.getElementById('msg-m').value=""; }
+    }
+
+    setInterval(() => { if(document.getElementById('p-kds').classList.contains('active')) updateKDS(); }, 10000);
+    updateKDS();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Cocina - 4 Elementos To Go!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #FFFFFF; --leaf: #8CC63F; --text: #1A1A1A; --soft: #F8F9FA; }
+        
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; display: flex; align-items: center; justify-content: center; 
+            height: 100vh; overflow: hidden;
+        }
+
+        .login-container {
+            width: 90%; max-width: 400px; text-align: center;
+            animation: slideUp 0.8s ease;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logo-cocina { width: 280px; margin-bottom: 30px; }
+
+        .card-login {
+            background: white; padding: 40px; border-radius: 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+            border: 1px solid #EEE;
+        }
+
+        h2 { font-weight: 800; font-size: 1.2rem; margin-bottom: 25px; letter-spacing: -0.5px; }
+        
+        .input-box { text-align: left; margin-bottom: 20px; }
+        label { font-size: 0.65rem; font-weight: 700; color: #AAA; text-transform: uppercase; margin-left: 10px; }
+
+        input {
+            width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #EEE;
+            background: var(--soft); font-family: inherit; font-size: 1rem;
+            margin-top: 8px; box-sizing: border-box; transition: 0.3s;
+        }
+        input:focus { border-color: var(--leaf); background: white; outline: none; }
+
+        .btn-access {
+            width: 100%; background: var(--text); color: white; border: none;
+            padding: 20px; border-radius: 18px; font-weight: 700; cursor: pointer;
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s; margin-top: 10px;
+        }
+        .btn-access:hover { background: var(--leaf); transform: translateY(-3px); }
+
+        .badge-cocina {
+            display: inline-block; padding: 6px 12px; background: #FFF9E7;
+            color: #FFB800; border-radius: 8px; font-size: 0.6rem;
+            font-weight: 800; margin-bottom: 15px; text-transform: uppercase;
+        }
+
+        #loading { display: none; margin-top: 15px; font-size: 0.8rem; color: var(--leaf); font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <img src="img/logo_principal.png" alt="4 Elementos To Go!" class="logo-cocina">
+        
+        <div class="card-login">
+            <div class="badge-cocina">Personal de Producción</div>
+            <h2>Acceso al Tablero KDS</h2>
+            
+            <div class="input-box">
+                <label>ID de Empleado</label>
+                <input type="text" id="cocina_id" placeholder="Ingresa tu ID">
+            </div>
+
+            <div class="input-box">
+                <label>PIN de Seguridad</label>
+                <input type="password" id="cocina_pass" placeholder="••••">
+            </div>
+
+            <button class="btn-access" id="btn-login" onclick="validarCocina()">Entrar a Cocina</button>
+            <div id="loading">VALIDANDO CREDENCIALES...</div>
+            <p id="error" style="color: #E74C3C; font-size: 0.75rem; margin-top: 15px; display: none; font-weight: 700;"></p>
+        </div>
+        
+        <p style="margin-top: 30px; font-size: 0.6rem; color: #CCC; letter-spacing: 2px;">4 ELEMENTOS TO GO! BY 4 ELEMENTOS</p>
+    </div>
+
+<script>
+    async function validarCocina() {
+        const id = document.getElementById('cocina_id').value;
+        const pass = document.getElementById('cocina_pass').value;
+        const err = document.getElementById('error');
+        const btn = document.getElementById('btn-login');
+        const load = document.getElementById('loading');
+
+        if(!id || !pass) return;
+
+        btn.style.display = "none";
+        load.style.display = "block";
+        err.style.display = "none";
+
+        try {
+            // Usamos tu API de autenticación existente
+            const response = await fetch('api/auth.php', {
+                method: 'POST',
+                body: JSON.stringify({ id: id, password: pass })
+            });
+            const data = await response.json();
+
+            if(data.success) {
+                // VERIFICACIÓN DE ROL: Solo permitimos si el rol es 'cocina' o 'admin'
+                if(data.user.rol === 'cocina' || data.user.rol === 'admin') {
+                    localStorage.setItem('usuario', JSON.stringify(data.user));
+                    window.location.href = 'admin_comedor.html';
+                } else {
+                    btn.style.display = "block";
+                    load.style.display = "none";
+                    err.innerText = "Acceso denegado: No tienes permisos de cocina.";
+                    err.style.display = "block";
+                }
+            } else {
+                btn.style.display = "block";
+                load.style.display = "none";
+                err.innerText = "Credenciales incorrectas.";
+                err.style.display = "block";
+            }
+        } catch (e) {
+            console.error(e);
+            btn.style.display = "block";
+            load.style.display = "none";
+            err.innerText = "Error de conexión con el servidor.";
+            err.style.display = "block";
+        }
+    }
+
+    document.addEventListener('keypress', (e) => { if(e.key === 'Enter') validarCocina(); });
+</script>
+</body>
+</html>

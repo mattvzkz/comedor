@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - 4 Elementos To Go!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root { --bg: #FFFFFF; --leaf: #8CC63F; --text: #1A1A1A; --soft: #FBFBFB; --danger: #FF4757; --gold: #FFB800; }
+        body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* HEADER & NAVEGACIÓN */
+        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 8%; box-sizing: border-box; border-bottom: 1px solid #EEE; background: white; position: sticky; top: 0; z-index: 1000; }
+        .tab-nav { display: flex; justify-content: center; gap: 25px; background: white; padding: 12px; border-bottom: 1px solid #EEE; }
+        .tab-link { border: none; background: none; font-weight: 700; color: #BBB; font-size: 0.75rem; text-transform: uppercase; cursor: pointer; padding: 10px; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-link.active { color: var(--leaf); border-bottom-color: var(--leaf); }
+
+        .container { max-width: 480px; width: 100%; margin: 25px auto; padding: 0 20px; box-sizing: border-box; flex-grow: 1; }
+        
+        /* TARJETAS Y UI */
+        .card { background: white; padding: 35px 20px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.04); border: 1px solid #F0F0F0; text-align: center; margin-bottom: 25px; }
+        .user-name { font-family: 'Playfair Display', serif; font-size: 2rem; margin: 10px 0; text-transform: lowercase; }
+        .saldo-box { background: var(--text); color: white; padding: 25px; border-radius: 25px; margin: 20px auto; max-width: 280px; }
+        .saldo-box small { display: block; opacity: 0.5; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
+        .saldo-box b { font-size: 1.8rem; color: var(--leaf); font-weight: 800; }
+
+        /* FORMULARIO */
+        .input-group { text-align: left; margin-bottom: 15px; }
+        label { font-size: 0.65rem; font-weight: 800; color: #AAA; text-transform: uppercase; margin-left: 5px; }
+        select, textarea { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #EEE; background: var(--soft); font-family: inherit; font-size: 0.95rem; margin-top: 5px; box-sizing: border-box; }
+        
+        .btn-main { width: 100%; background: var(--leaf); color: white; border: none; padding: 20px; border-radius: 20px; font-weight: 800; font-size: 1rem; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-mp { background: #009EE3; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+        /* AVISOS */
+        .notif-box { background: #FFF9E7; border-left: 5px solid var(--gold); padding: 20px; border-radius: 20px; margin-bottom: 20px; font-size: 0.85rem; text-align: left; }
+        #qrcode { display: flex; justify-content: center; margin: 25px 0; }
+        #debug { font-size: 0.6rem; color: #CCC; margin-top: 15px; font-weight: 700; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="img/logo_principal.png" style="height: 40px;">
+        <button onclick="logout()" style="background:#FFF0F0; color:var(--danger); border:none; padding:10px 18px; border-radius:12px; font-weight:800; font-size:0.65rem; cursor:pointer;">SALIR</button>
+    </div>
+
+    <nav class="tab-nav">
+        <button class="tab-link active" onclick="sw('t-m', this)">Pedir</button>
+        <button class="tab-link" onclick="sw('t-q', this)">Mi QR</button>
+        <button class="tab-link" onclick="sw('t-r', this)">Saldo</button>
+    </nav>
+
+    <div class="container">
+        <div id="notif-area"></div>
+
+        <div id="t-m" class="panel">
+            <div class="card">
+                <h3 style="font-family:'Playfair Display'; margin-top:0;">Orden de hoy</h3>
+                <div class="input-group"><label>Plato Fuerte</label><select id="u-f"></select></div>
+                <div class="input-group"><label>Guarnición</label><select id="u-g"></select></div>
+                <div class="input-group"><label>Bebida</label><select id="u-b"></select></div>
+                <div class="input-group"><label>Observaciones</label><textarea id="u-o" rows="2" placeholder="Ej. sin cebolla..."></textarea></div>
+                <button onclick="ord()" id="btn-o" class="btn-main">Confirmar Pedido</button>
+            </div>
+        </div>
+
+        <div id="t-q" class="panel" style="display:none;">
+            <div class="card">
+                <h2 class="user-name" id="u-n">...</h2>
+                <div class="saldo-box">
+                    <small>Créditos To Go! disponibles</small>
+                    <b><span id="u-s">0</span></b>
+                </div>
+                <div id="qrcode"></div>
+                <div id="debug"></div>
+            </div>
+        </div>
+
+        <div id="t-r" class="panel" style="display:none;">
+            <div class="card">
+                <h3 style="font-family:'Playfair Display'; margin-top:0;">Recargar Saldo</h3>
+                <button id="btnMP" onclick="iniciarRecargaMP()" class="btn-main btn-mp">
+                    <span>Pagar con</span>
+                    <img src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large.png" height="20">
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let u = JSON.parse(localStorage.getItem('usuario'));
+
+    // --- 🛡️ SEGURIDAD ---
+    if (!sessionStorage.getItem('active_session')) { if (localStorage.getItem('usuario')) logout(); }
+    sessionStorage.setItem('active_session', 'true');
+
+    let idleTimer;
+    function resetTimer() { clearTimeout(idleTimer); idleTimer = setTimeout(() => { alert("Sesión expirada"); logout(); }, 300000); }
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(e => document.addEventListener(e, resetTimer, true));
+
+    // --- 🔄 ACREDITACIÓN TRAS PAGO ---
+    async function revisarEstadoPago() {
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get('pago');
+        const uid = params.get('uid');
+
+        if (status === 'exitoso' && uid) {
+            try {
+                const res = await fetch(`api/acreditar_pago.php?uid=${uid}`);
+                const data = await res.json();
+                if (data.success) {
+                    alert("¡Pago acreditado con éxito!");
+                    window.history.replaceState({}, document.title, "perfil.html");
+                    sincronizarSaldoDB();
+                }
+            } catch (e) { console.error("Error acreditando"); }
+        }
+    }
+
+    // --- 🚀 INICIO ---
+    if (!u) { window.location.href = 'login.html'; } 
+    else {
+        document.getElementById('u-n').innerText = u.nombre;
+        document.getElementById('u-s').innerText = u.saldo_creditos || u.saldo || 0;
+        new QRCode(document.getElementById("qrcode"), { text: u.id.toString(), width: 200, height: 200, colorDark: "#1A1A1A" });
+        
+        revisarEstadoPago();
+        loadMenu(); 
+        loadNotif(); 
+        sincronizarSaldoDB();
+        resetTimer();
+    }
+
+    function sw(id, b) {
+        document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+        document.getElementById(id).style.display = 'block'; b.classList.add('active');
+    }
+
+    async function loadMenu() {
+        try {
+            const r = await fetch('api/gestion_menu.php');
+            const d = await r.json();
+            const fill = (id, l) => document.getElementById(id).innerHTML = l.map(i => `<option value="${i.id}" ${i.stock <= 0 ? 'disabled' : ''}>${i.nombre}</option>`).join('');
+            fill('u-f', d.menu.fuerte); fill('u-g', d.menu.guarnicion); fill('u-b', d.menu.bebida);
+        } catch(e) {}
+    }
+
+    async function ord() {
+        const btn = document.getElementById('btn-o'); btn.innerText = "PROCESANDO..."; btn.disabled = true;
+        try {
+            const res = await fetch('api/gestion_menu.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario_id: u.id, fuerte: document.getElementById('u-f').value, guarnicion: document.getElementById('u-g').value, bebida: document.getElementById('u-b').value, observaciones: document.getElementById('u-o').value })
+            });
+            const data = await res.json();
+            if(data.success) { 
+                btn.innerText = "✅ ENVIADO"; 
+                u.saldo_creditos = data.nuevo_saldo; localStorage.setItem('usuario', JSON.stringify(u));
+                document.getElementById('u-s').innerText = data.nuevo_saldo;
+                setTimeout(() => { sw('t-q', document.querySelectorAll('.tab-link')[1]); btn.disabled = false; btn.innerText = "Confirmar Pedido"; }, 1500);
+            } else { alert(data.error); btn.disabled = false; btn.innerText = "Confirmar Pedido"; }
+        } catch(e) { btn.disabled = false; }
+    }
+
+    async function iniciarRecargaMP() {
+        const btn = document.getElementById('btnMP'); btn.disabled = true; btn.innerHTML = "CONECTANDO...";
+        try {
+            const r = await fetch('api/crear_preferencia.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario_id: u.id }) });
+            const data = await r.json();
+            if (data.init_point) window.location.href = data.init_point;
+        } catch (e) { btn.disabled = false; }
+    }
+
+    async function sincronizarSaldoDB() {
+        try {
+            const r = await fetch(`api/perfil.php?email=${encodeURIComponent(u.email)}`);
+            const res = await r.json();
+            if (res.success) {
+                const s = res.data.saldo_creditos || res.data.saldo;
+                document.getElementById('u-s').innerText = s;
+                u.saldo_creditos = s; localStorage.setItem('usuario', JSON.stringify(u));
+                document.getElementById('debug').innerHTML = "● SINCRONIZADO";
+            }
+        } catch (e) { document.getElementById('debug').innerText = "● OFFLINE"; }
+    }
+
+    async function loadNotif() {
+        try {
+            const r = await fetch('api/gestion_menu.php?action=ver_notificaciones');
+            const d = await r.json();
+            if(d.notificaciones.length > 0) document.getElementById('notif-area').innerHTML = d.notificaciones.map(n => `<div class="notif-box"><b>${n.titulo}</b><br>${n.mensaje}</div>`).join('');
+        } catch(e) {}
+    }
+
+    function logout() { localStorage.removeItem('usuario'); sessionStorage.clear(); window.location.href = 'login.html'; }
+</script>
+</body>
+</html>

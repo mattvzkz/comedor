@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Comensales - Cuatro Elementos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --organic-bg: #FBFBFB; --leaf-green: #8CC63F; --earth-text: #1A1A1A; }
+        
+        body { 
+            background-color: var(--organic-bg); 
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzlDOUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIWMjB6TTAgMjBoMjB2MjBIMFYyMHoyMCAwaDIwdjIwSDIwVjB6Ii8+PC9nPjwvZz48L3N2Zz4=');
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; 
+        }
+
+        .card { 
+            background: white; padding: 50px 40px; border-radius: 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02);
+            width: 100%; max-width: 360px; text-align: center; 
+        }
+
+        .card img { max-width: 160px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+
+        h2 { 
+            font-family: 'Playfair Display', serif; color: var(--earth-text); 
+            font-size: 1.5rem; margin-bottom: 30px; letter-spacing: -0.5px;
+        }
+
+        input { 
+            width: 100%; padding: 16px; margin-bottom: 15px; background: #F8F9FA; 
+            border: 1px solid #EEE; color: var(--earth-text); border-radius: 14px; 
+            box-sizing: border-box; transition: 0.3s; font-family: inherit;
+        }
+
+        input:focus { border-color: var(--leaf-green); outline: none; background: white; box-shadow: 0 0 0 4px rgba(140, 198, 63, 0.1); }
+
+        button { 
+            width: 100%; padding: 16px; background: var(--earth-text); color: white; 
+            border: none; border-radius: 14px; font-weight: 700; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; margin-top: 10px;
+        }
+
+        button:hover { background: #333; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+        #error { color: #E74C3C; margin-top: 20px; font-size: 0.85rem; display: none; background: #FFF5F5; padding: 12px; border-radius: 10px; border: 1px solid #FFE3E3; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="img/logo_cuatro_elementos.png" alt="Logo">
+        <h2>Mi Cuenta</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Tu contraseña" required>
+            <button type="submit">Ingresar</button>
+        </form>
+        <div id="error"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const errorDiv = document.getElementById('error');
+            const emailVal = document.getElementById('email').value;
+            const btn = e.target.querySelector('button');
+            
+            btn.innerText = "VERIFICANDO...";
+            btn.disabled = true;
+
+            const datos = { email: emailVal, password: document.getElementById('password').value };
+
+            try {
+                const resp = await fetch('login.php', { method: 'POST', body: JSON.stringify(datos) });
+                const res = await resp.json();
+
+                if(res.success) {
+                    const sessionData = { id: res.user.id, nombre: res.user.nombre, email: emailVal, saldo: res.user.saldo };
+                    localStorage.setItem('usuario', JSON.stringify(sessionData));
+                    window.location.href = 'perfil.html';
+                } else {
+                    errorDiv.innerText = res.error;
+                    errorDiv.style.display = 'block';
+                    btn.innerText = "INGRESAR";
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                errorDiv.innerText = "Error de conexión con el restaurante";
+                errorDiv.style.display = 'block';
+                btn.innerText = "INGRESAR";
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

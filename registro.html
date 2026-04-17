@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Cuatro Elementos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --organic-bg: #FBFBFB; --leaf-green: #8CC63F; --earth-text: #1A1A1A; --water-cyan: #55C5D1; }
+        
+        body { 
+            background-color: var(--organic-bg); 
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM5QzlDOUMiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTIwIDIwaDIwdjIwSDIWMjB6TTAgMjBoMjB2MjBIMFYyMHoyMCAwaDIwdjIwSDIwVjB6Ii8+PC9nPjwvZz48L3N2Zz4=');
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px;
+        }
+
+        .card { 
+            background: white; padding: 40px; border-radius: 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02);
+            width: 100%; max-width: 400px; text-align: center; 
+        }
+
+        .card img { max-width: 140px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+
+        h2 { 
+            font-family: 'Playfair Display', serif; color: var(--earth-text); 
+            font-size: 1.6rem; margin-bottom: 10px;
+        }
+
+        p.subtitle { color: #888; font-size: 0.85rem; margin-bottom: 30px; }
+
+        input { 
+            width: 100%; padding: 14px 18px; margin-bottom: 12px; background: #F8F9FA; 
+            border: 1px solid #EEE; color: var(--earth-text); border-radius: 12px; 
+            box-sizing: border-box; transition: 0.3s; font-family: inherit;
+        }
+
+        input:focus { border-color: var(--water-cyan); outline: none; background: white; box-shadow: 0 0 0 4px rgba(85, 197, 209, 0.1); }
+
+        button { 
+            width: 100%; padding: 16px; background: var(--leaf-green); color: white; 
+            border: none; border-radius: 14px; font-weight: 700; cursor: pointer; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; margin-top: 15px;
+        }
+
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(140, 198, 63, 0.2); opacity: 0.95; }
+
+        #mensaje { margin-top: 20px; padding: 12px; border-radius: 12px; display: none; font-size: 0.85rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="img/logo_cuatro_elementos.png" alt="Logo">
+        <h2>Crear Cuenta</h2>
+        <p class="subtitle">Únete a nuestra experiencia gastronómica digital</p>
+        
+        <form id="registroForm">
+            <input type="text" id="nombre" placeholder="Nombre completo" required>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña segura" required>
+            <input type="tel" id="telefono" placeholder="WhatsApp (10 dígitos)" required>
+            <input type="text" id="lugar_trabajo" placeholder="Área o Plaza de trabajo">
+            
+            <button type="submit" id="btnEnviar">Registrarme</button>
+        </form>
+
+        <div id="mensaje"></div>
+        <p style="margin-top:25px; font-size:0.75rem; color:#AAA;">¿Ya tienes cuenta? <a href="login.html" style="color:var(--water-cyan); text-decoration:none; font-weight:700;">Inicia sesión</a></p>
+    </div>
+
+    <script>
+        const form = document.getElementById('registroForm');
+        const mensajeDiv = document.getElementById('mensaje');
+        const btn = document.getElementById('btnEnviar');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            const datos = {
+                nombre: document.getElementById('nombre').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                telefono: document.getElementById('telefono').value,
+                lugar_trabajo: document.getElementById('lugar_trabajo').value
+            };
+
+            try {
+                const response = await fetch('registro.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                const resultado = await response.json();
+
+                if (resultado.success) {
+                    mensajeDiv.style.display = "block";
+                    mensajeDiv.style.background = "#F0FFF4";
+                    mensajeDiv.style.color = "#2F855A";
+                    mensajeDiv.style.border = "1px solid #C6F6D5";
+                    mensajeDiv.innerText = "¡Registro exitoso! Bienvenido.";
+                    form.reset();
+                    setTimeout(() => window.location.href = 'login.html', 2000);
+                } else {
+                    throw new Error(resultado.error || "Error en el registro");
+                }
+            } catch (error) {
+                mensajeDiv.style.display = "block";
+                mensajeDiv.style.background = "#FFF5F5";
+                mensajeDiv.style.color = "#C53030";
+                mensajeDiv.style.border = "1px solid #FED7D7";
+                mensajeDiv.innerText = error.message;
+                btn.disabled = false;
+                btn.innerText = "REGISTRARME";
+            }
+        };
+    </script>
+</body>
+</html>
